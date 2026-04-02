@@ -99,22 +99,66 @@ So PowerShell is **gracefully skipped** on ARM — no error, no action.
 
 ---
 
-## Packages NOT Available on ARM64 (Known Limitations)
+## ARM64 Package Status
 
-The [GIFT PPA](https://launchpad.net/~gift) (Google Investigative Forensic Toolkit) does not publish ARM64 builds for several forensic libraries. These fail silently during installation — the rest of SIFT still installs fine.
+### Missed by the installer — fix with `apt install`
 
-| Package | Reason |
+These packages **do exist for ARM64** but failed to install during the SIFT salt run because the `ubuntu-ports` repository fix was applied after the initial attempt. The automated `install.sh` handles this, but if you ran `cast install` manually, install these yourself:
+
+```bash
+sudo apt install afflib-tools aircrack-ng autopsy sleuthkit xmount
+```
+
+| Package | Status |
 |---|---|
-| `libbde` / `libbde-tools` | GIFT PPA — amd64 only |
-| `libewf-tools` | GIFT PPA — amd64 only |
-| `libvshadow-tools` | GIFT PPA — amd64 only |
-| `python3-pytsk3` | No ARM64 package available |
-| `python3-dfvfs` | Depends on all of the above |
-| `plaso-tools` (log2timeline) | Depends on `python3-dfvfs` |
-| `rar` | No ARM64 package in Ubuntu multiverse |
-| PowerShell | Microsoft repo is amd64-only (gracefully skipped) |
+| `afflib-tools` | Available in ubuntu-ports (noble) |
+| `aircrack-ng` | Available in ubuntu-ports (jammy) |
+| `autopsy` | Available in ubuntu-ports (noble) |
+| `sleuthkit` | Available in ubuntu-ports (noble) |
+| `xmount` | Available in ubuntu-ports (noble) |
 
-> **Note:** The Sleuth Kit (`sleuthkit`), Autopsy, Volatility, Wireshark, Radare2, ExifTool, bulk_extractor, Volatility, and most other DFIR tools **do work** on ARM64.
+### Genuinely unavailable on ARM64
+
+These packages simply do not exist as ARM64 builds. They fail silently during installation — everything else installs fine.
+
+**GIFT PPA publishes amd64-only builds for the entire libyal family:**
+
+| Package | Impact |
+|---|---|
+| `libbde` / `libbde-tools` | BitLocker encrypted volume support |
+| `libewf-tools` | Expert Witness Format (EWF/E01) CLI tools |
+| `libfvde` / `libfvde-tools` | FileVault 2 encrypted volume support |
+| `libesedb` / `libesedb-tools` | ESE/EDB database support (e.g. IE history) |
+| `libevt` / `libevt-tools` | Windows EVT event log support |
+| `libevtx` / `libevtx-tools` | Windows EVTX event log support |
+| `libmsiecf` | MS IE cache file support |
+| `libolecf` | OLE Compound File support |
+| `libregf` / `libregf-tools` | Windows Registry support (CLI tools) |
+| `libvshadow` / `libvshadow-tools` | Volume Shadow Copy support |
+| `libfsapfs-tools` | Apple File System (APFS) support |
+| `libvmdk` | VMware VMDK support (CLI tools) |
+| `libewf-python3`, `libregf-python3`, `libvshadow-python3` | Python bindings for the above |
+| `python3-pytsk3` | Python bindings for The Sleuth Kit |
+| `python3-dfvfs` | Depends on all of the above — not installable |
+| `plaso-tools` (log2timeline) | Depends on `python3-dfvfs` — not installable |
+
+> **Note:** The underlying libraries (`libewf2`, `libregf1`, `libvshadow1`, `libvmdk1`) **do** install on ARM64 — only the GIFT PPA versions of the tools and Python bindings are missing.
+
+**No ARM64 build exists anywhere:**
+
+| Package | Notes |
+|---|---|
+| `aeskeyfind` | No ARM64 package in any repo |
+| `bulk-extractor` | GIFT PPA amd64-only; no ARM64 build published |
+| `cmospwd` | x86-specific tool by nature (reads CMOS hardware) |
+| `liblightgrep` | No ARM64 package available |
+| `rar` | RAR's Linux builds are x86-only; `unrar-free` is installed as a substitute |
+
+**amd64-only by design:**
+
+| Package | Notes |
+|---|---|
+| `powershell` | Microsoft's Linux packages are amd64-only; gracefully skipped by the installer |
 
 ---
 
@@ -187,12 +231,11 @@ This will:
 
 ```bash
 # Check some key tools
-which volatility3
-which bulk_extractor
 which wireshark
 which radare2
+which sleuthkit
+which autopsy
 exiftool -ver
-sleuthkit --version 2>/dev/null || echo "sleuthkit installed"
 ```
 
 ---
@@ -201,8 +244,8 @@ sleuthkit --version 2>/dev/null || echo "sleuthkit installed"
 
 The vast majority of SIFT tools install and run correctly on ARM64:
 
-- **Disk/filesystem forensics:** `sleuthkit`, `autopsy`, `testdisk`, `extundelete`, `scalpel`, `foremost`, `bulk_extractor`, `dc3dd`, `dcfldd`, `ewf-tools`, `afflib-tools`
-- **Memory/registry:** `volatility3`, `libregf-tools`, `libevt-tools`, `libevtx-tools`, `libesedb-tools`
+- **Disk/filesystem forensics:** `sleuthkit`, `autopsy`, `testdisk`, `extundelete`, `scalpel`, `foremost`, `dc3dd`, `dcfldd`, `ewf-tools`, `afflib-tools`, `xmount`
+- **Memory/registry:** `volatility3` (via pip), `libregf1`, `libewf2`, `libvshadow1` (libraries install; CLI tools from GIFT PPA do not)
 - **Malware analysis:** `radare2`, `yara`, `ssdeep`, `upx-ucl`, `vbindiff`, `ghex`
 - **Network forensics:** `wireshark`, `tcpflow`, `ngrep`, `ssldump`, `tcpreplay`, `scapy`
 - **Password/crypto:** `hashdeep`, `samdump2`, `ophcrack`, `hydra`, `aeskeyfind`

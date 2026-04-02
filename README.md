@@ -123,14 +123,35 @@ The [GIFT PPA](https://launchpad.net/~gift) (Google Investigative Forensic Toolk
 ### Prerequisites
 
 - **macOS with Apple Silicon** (M1/M2/M3/M4) and [UTM](https://mac.getutm.app/) installed
-- Ubuntu 22.04 LTS ARM64 ISO (the Server ISO works fine, then add a desktop if desired)
+- Ubuntu 22.04 LTS ARM64 ISO — see Step 1 for the caveat about this
 
-### Step 1 — Set Up UTM VM
+### Step 1 — Get the Ubuntu 22.04 ARM64 ISO and Set Up UTM
 
+> **Important:** `cdimage.ubuntu.com/releases/22.04/release/` only offers a **server** ISO for ARM64 — there is no desktop ISO. You will install the server edition and add a GUI yourself in Step 1b.
+
+**Download the server ISO:**
+- Go to `https://cdimage.ubuntu.com/releases/22.04/release/`
+- Download `ubuntu-22.04.x-live-server-arm64.iso`
+
+**Create the UTM VM:**
 1. In UTM, create a new VM: **Virtualize → Linux**
-2. Use an Ubuntu 22.04 ARM64 ISO (from `cdimage.ubuntu.com/releases/22.04/release/`)
+2. Select the ARM64 server ISO you downloaded
 3. Allocate at least **4 GB RAM** (8 GB recommended) and **60 GB disk**
-4. Install Ubuntu normally
+4. Complete the server installer (no desktop options will be presented — that's expected)
+
+**Step 1b — Install a Desktop Environment**
+
+Once the server is installed and you've logged in over the console or SSH, install Ubuntu's desktop:
+
+```bash
+sudo apt update
+sudo apt install -y ubuntu-desktop
+sudo reboot
+```
+
+After rebooting, the GDM login screen will appear. Log in as your user and you'll have a full GNOME desktop.
+
+> **Tip:** `ubuntu-desktop` pulls in the full GNOME environment (~1.5 GB). If you prefer something lighter, use `ubuntu-desktop-minimal` instead — it skips bundled office apps and extras but gives you a complete, functional desktop.
 
 ### Step 2 — Download and Install CAST
 
